@@ -82,4 +82,39 @@ API.download(file: "http://www...")
 
 여러분은 `onError` 클로저가 제공하는 error도 구독하고 있습니다. 이 클로저 내에서, 여러분은 `error.localizedDescription`을 얼럿 상자에 띄워 보여줄 수도 있고, 여러분이 직접 error를 핸들링 하셔도 됩니다. 
 
-마지막으로 `completed` 이벤트를 
+마지막으로 `completed` 이벤트를 핸들링 하기 위해 `onCompleted` 클로저를 활용해 새로운 뷰 컨트롤러를 push 해 주거나, 다운로드 받은 파일을 보여주거나 하는 등 앱 로직히 원하는 무엇이든 할 수 있죠. 
+
+### Infinite observable sequences
+
+자연스럽게든, 강제로든 종료를 시켜줘야 하는 파일을 다운로드와는 다르게 무한히 sequence가 이어지는 경우들이 있습니다. UI 이벤트들이 대부분 infinite observable sequence가 됩니다. 
+
+예를 들어서, 기기의 오리엔테이션이 바뀔 때 반응해 주는 코드를 상상해보세요. 
+
+- `UIDeviceOrientationDidChange` 의 알림이 `NotificationCenter`를 통해 전달될 때 그것을 관찰하고 있는 클래스를 만들어 줍니다. 
+
+- 메서드 콜백을 만들어 orientation의 변화를 핸들링할 것입니다. 현재 orientation을 `UIDevice`로 부터 받아서 가지고 있다가 최신 값에 따라 반응해줘야 겠죠. 
+
+이런 orientation의 변화는 사실 자연적인 끝이라는건 없습니다. 디바이스가 존재하고, orientation이 바뀔 확률이 있다면 계속 존재하는거죠. 게다가, 이러한 sequence가 무한하고, stateful하기 때문에, 그것을 관찰하기 시작하는 그 순간부터 항상 초기값을 가지고 있어야 합니다. 
+
+![](https://assets.alexandria.raywenderlich.com/books/rxs/images/37f39e4b50e8f7ba826a8fd6c8293695a8bb55e51a4c9a15b8a9e1590fd0c20a/original.png)
+
+유저가 화면을 아예 안돌린다고 해서 이 이벤트의 sequence가 종료되는 것은 아닙니다. 그냥 지금까지 아무런 이벤트가 방출되지 않았다는 것만을 의미하지요. 
+
+RxSwift로 기기의 orientation을 핸들링하는 코드를 쓰면 아래와 같을 것 입니다. 
+
+```Swfit
+UIDevice.rx.orientation
+  .subscribe(onNext: { current in
+    switch current {
+    case .landscape:
+      // Re-arrange UI for landscape
+    case .portrait:
+      // Re-arrange UI for portrait
+    }
+  })
+
+```
+
+`UIDevice.rx.orientation`은 가상의 제어 프로퍼티로 `Observable<Orientation>`을 생산해냅니다. 여러분은 그것을 구독해서, 여러분의 앱 UI를 현재 orientation에 맞게 업데이트를 해 줄것 입니다. 이 때, `onError`와 `onCompleted` 표현은 생략합니다. 왜냐하면 이 이벤트는 observable로부터 방출되는 것이 아니니까요. 
+
+
