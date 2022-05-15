@@ -192,6 +192,8 @@ MVC, MVP, MVVM 또는 여러분이 좋아하는 어떤 패턴을 쓰든 여러�
 
 RxSwift와 MVVM이 궁합이 잘 맞기는 합니다. View Controller의  UIKit와 직접적으로 bind해줄 수 있도록 Observable 프로퍼티를 드러내게 해 주기 때문이예요. MVVM을 쓰면 데이터 모델과 UI를 bind하기 쉽게 해주고 작성하기도 쉬워지죠. 
 
+![](https://assets.alexandria.raywenderlich.com/books/rxs/images/0625dc8cc2e93bdc9324fafea84fadaaf4729dfd39d114996486bb185bdb53e0/original.png)
+
 
 
 
