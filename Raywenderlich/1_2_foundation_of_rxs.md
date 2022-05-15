@@ -118,3 +118,80 @@ UIDevice.rx.orientation
 `UIDevice.rx.orientation`은 가상의 제어 프로퍼티로 `Observable<Orientation>`을 생산해냅니다. 여러분은 그것을 구독해서, 여러분의 앱 UI를 현재 orientation에 맞게 업데이트를 해 줄것 입니다. 이 때, `onError`와 `onCompleted` 표현은 생략합니다. 왜냐하면 이 이벤트는 observable로부터 방출되는 것이 아니니까요. 
 
 
+## Operators
+
+`ObservableType`과  `Observable` 클래스 내부의 잘게 쪼개놓은 비동기 작업과 이벤트 변형을 추상화 해주는 수 많은 메서드들은 복잡한 로직을 구현하는데 사용이 됩니다. 이런 메서드들을 우리는 operator라고 부릅니다. 
+
+operator들은 대부분 비동기 input을 받아서 side effect를 일으키지 않을 output만 생산해 내기 때문에, 퍼즐 조각들처럼 서로 잘 맞물리며 사용할 수 있습니다. 
+
+예를 들어서, 이런 수학 식을 사용한다고 해 볼게요. : `(5 + 6) * 10 - 2`
+
+`*`, `()`, `+`, `-` 같은 이 수식 내의 연산자들은 이미 순서가 정해져 있고, 어떤 데이터를 받아 어떤 과정을 통해 어떤 결과값을 만들어 낼 때 까지 계속 연산을 하게됩니다.
+
+Rx operator들도 비슷한 느낌으로 `Observable`로부터 방출된 이벤트들을 코드가 끝나서 마지막 값을 도출할 때 까지 input과 output을 처리해 냅니다. 마지막으로 도출된 값을 side effect, 즉 다른 객체의 상태나 내용을 바꿔줄 때 활용하게 해 줍니다. 
+
+위에서 언급된 기기의 orientation의 변화를 감지하는 코드를 Rx operator를 사용해 조정해 준 예시입니다. 
+
+```Swift
+UIDevice.rx.orientation
+  .filter { $0 != .landscape }
+  .map { _ in "Portrait is the best!" }
+  .subscribe(onNext: { string in
+    showAlert(text: string)
+  })
+
+```
+
+`UIDevice.rx.orientation`이 `.landscape` 또는 `.portrait` 생산해 낼 때 마다, RxSwift는 `filter`나 `map`을 적용해 줄 것입니다. 
+ 
+ ![](https://assets.alexandria.raywenderlich.com/books/rxs/images/4733ac0cfa80353413c2f1e0a5058322dfc7daca1d6cd13323b5b3fe85378083/original.png)
+
+ 먼저, `filter`는 `.landscape`가 아닌 값들만을 통과시켜줄 것 입니다. 만약에 기기가 landscape 모드라면 위 코드는 실행이 되지 않을거예요. 왜냐면 `filter`가 이 이벤트를 넘겨주지 않을 테니까요. 
+
+ `.protrait` 값의 경우에는 `map` operator가 `Orientation`타입을 input 받아서 String output으로 변환을 해 줄 것입니다. 그 텍스트가 바로 `"Portrait is the best`입니다. 
+
+ 마지막으로, `subscribe`가 `next` 이벤트를 구독하면서, String 값을 전달해줍니다. 여기에서는 얼럿창과 텍스트를 화면에 띄워주는 메서드를 호출해 주네요. 
+
+ Operator들은 조합을 하기가 매우 좋습니다. 언제나 데이터를 input으로 받고, 연산 결과를 output으로 내놓죠. 여러개를 다양한 방식으로 연결하면 하나의 operator가 할 수 있는 것 이상으로 다양한 역할을 할 수 있습니다. 
+
+ ## Schedulers 
+ Scheduler는 Rx와 관련있는 dispatch queue나 operation queue 입니다. 더 쉽고, 좀 더 약 빨아버린 버전이라는 것만 다르죠. Scheduler를 사용하면 태스크의 조각들에 어떤 실행 방식을 적용할 지 정의해 둘 수 있습니다. 
+
+RxSwift는 여러개의 미리 정의해 놓은 스케줄러를 가지고 있는데요. 99%의 경우 이들을 사용하면 알맞고, 여러분이 직접 만들어 사용할 일이 거의 없다는 것을 의미하죠. 
+
+사실, 이 교육과정의 전반전에 나오는 예시들은 거의 데이터를 observe하고 UI를 업데이트 하는 내용이라 기초적인 내용을 다 학습하기 전에는 스케줄러를 공부하시진 않을겁니다. 
+
+그 말인 즉슨, 스케줄러가 굉장히 강력하다는 말이죠.
+
+예를 들면, 여러분이 `SerialDispatchQueueScheduler`가 방출하는 `next`이벤트를 observe하기로 했다고 해 봅시다. 이 스케줄러는 GCD를 활용해 주어진 queue에서 여러분의 코드를 순차적으로 실행할 것 입니다. 
+
+`ConcurrentDispatchQueueScheduler`는 코드를 concurrent하게 실행하고, `OperationQueueScheduler`는 여러분의 구독을 주어진 `OperationQueue`에 스케줄링 하도록 해 줄 거예요. 
+
+RxSwift의 장점은 같은 구독 내에서도 각각의 수행할 업무를 다른 스케줄러에서 처리해서 여러분의 사용처에 맞게 더 좋은 효율을 내도록 스케줄링 할 수 있다는 것입니다.
+
+RxSwift는 마치 여러분의 구독과 스케줄러 사이의 우체부처럼, 업무의 일부를 전달하고 아주 매끄럽게 각자의 output을 활용할 수 있게 해주죠. 
+
+![](https://assets.alexandria.raywenderlich.com/books/rxs/images/28bdd14bbb8cebcb00fcdc724a10d4f34c19a2b14bcdda5c7ed1f59af513b6f4/original.png)
+
+위의 그림을 보면, 색깔로 칠해진 각각의 업무들이 서로다른 스케줄러에 스케줄링 되어있어요. 예를 들어서 :
+
+- 파란색 네트워크 구독은 맨 아래 `CustomNSOperationScheduler`에서 (1)번 작업을 수행할 코드 일부분을 실행시킵니다. 
+- 여기에서 나온 데이터 output을 다음 블럭인 (2)번 작업의 input으로 넣어줍니다. 이 때는 또 다른 스케줄러인 `BackgroundConcurrentScheduler`에서 처리를 해주네요.
+
+- 마지막 코드 조각인 (3)번 작업은 메인 스테드 스케줄러에서 실행시켜줘서 새 데이터를 담은 UI로 업데이트 해줍니다. 
+
+되게 재미있고 편해보이긴 하겠지만, 지금 너무 신경쓰지는 마세요. 나중에 더 학습을 하게 될겁니다. 
+
+## App 아키텍처
+
+RxSwift가 여러분의 앱 아키텍처를 변화시키지는 않는다는 걸 꼭 언급을 해 두어야 겠습니다. RxSwift는 이벤트, 비동기 데이터의 sequence, 그리고 보편적인 통신 contract만을 다루고 있어요. 
+
+그리고 꼭 언급해야 할 것은 여러분이 반응형 앱을 만들고 싶다고 해서 꼭 완전 처음부터 앱을 새로 만들어야 하는 것은 아니예요. 현재 가지고 있는 프로젝트를 차차 리팩토링 해 나가거나, 앱에 새 기능을 개발할 때 RxSwift를 써보시면 됩니다. 
+
+MVC, MVP, MVVM 또는 여러분이 좋아하는 어떤 패턴을 쓰든 여러분은 Rx를 앱에 적용하실 수 있어요. 
+
+RxSwift와 MVVM이 궁합이 잘 맞기는 합니다. View Controller의  UIKit와 직접적으로 bind해줄 수 있도록 Observable 프로퍼티를 드러내게 해 주기 때문이예요. MVVM을 쓰면 데이터 모델과 UI를 bind하기 쉽게 해주고 작성하기도 쉬워지죠. 
+
+
+
+
