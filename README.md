@@ -10,4 +10,4 @@ RxSwift와 관련한 학습의 기록
 
 #4 - [Observables - 옵저버블 실제로 사용해보기](https://github.com/AnnaBaeTofuMom/RxSwift/blob/main/Raywenderlich/2_1_observables.md)
 
-#5 - [Observable 생성 연산자](https://github.com/AnnaBaeTofuMom/RxSwift/issues/2)
+#5 - [Observable 생성 연산자 Create, Just](https://github.com/AnnaBaeTofuMom/RxSwift/issues/2)
