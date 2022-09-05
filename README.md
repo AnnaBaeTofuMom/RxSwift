@@ -13,3 +13,5 @@ RxSwift와 관련한 학습의 기록
 #5 - [Observable 생성 연산자 Create, Just](https://github.com/AnnaBaeTofuMom/RxSwift/issues/2)
 
 #6 - [Traits - Single, Driver, Signal](https://github.com/AnnaBaeTofuMom/RxSwift/issues/3)
+
+#7 - [Combine Operator - combineLatest, merge, zip](https://github.com/AnnaBaeTofuMom/RxSwift/issues/4)
